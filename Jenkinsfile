@@ -15,9 +15,9 @@ pipeline {
                 bat 'echo "Mulai build aplikasi di Windows"' 
             } 
         }
-        stage('Build Docker Image') {
-            steps { 
-                bat "docker build -t %IMAGE_NAME%:%BUILD_NUMBER% ." 
+       stage('Build Docker Image') {
+            steps {
+                bat '"C:\\Program Files\\Docker\\Docker\\resources\\bin\\docker.exe" build -t reikaelvaretta/simple-app:9 .'
             }
         }
         stage('Push Docker Image') {
