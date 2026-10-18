@@ -1,49 +1,39 @@
 pipeline {
     agent any
     environment {
-        IMAGE_NAME = 'abdieeuh/simple-app'
-        REGISTRY = 'https://index.docker.io/v1/'
+        IMAGE_NAME = 'reikaelvaretta/simple-app' // Sesuaikan dengan username Docker Hub Anda jika berbeda
         REGISTRY_CREDENTIALS = 'dockerhub-credentials'
-        PATH = "/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
-        DOCKER_HOST = "unix:///var/run/docker.sock"
     }
     stages {
-        stage('Checkout') {
-            steps {
-                echo 'Melakukan checkout dari SCM...'
-                checkout scm
-            }
+        stage('Checkout') { 
+            steps { 
+                checkout scm 
+            } 
         }
-        stage('Build') {
-            steps {
-                echo 'Mulai build aplikasi'
-                bat 'echo "Build selesai ✅"'
-            }
+        stage('Build') { 
+            steps { 
+                bat 'echo "Mulai build aplikasi di Windows"' 
+            } 
         }
         stage('Build Docker Image') {
-            steps {
-                script {
-                    echo 'Membangun Docker image...'
-                    docker.build("${IMAGE_NAME}:${env.BUILD_NUMBER}")
-                    echo "Image berhasil dibuat: ${IMAGE_NAME}:${env.BUILD_NUMBER}"
-                }
+            steps { 
+                bat "docker build -t %IMAGE_NAME%:%BUILD_NUMBER% ." 
             }
         }
         stage('Push Docker Image') {
             steps {
-                script {
-                    echo 'Push image ke Docker Hub...'
-                    docker.withRegistry(REGISTRY, REGISTRY_CREDENTIALS) {
-                        docker.image("${IMAGE_NAME}:${env.BUILD_NUMBER}").push()
-                        docker.image("${IMAGE_NAME}:${env.BUILD_NUMBER}").push('latest')
-                    }
+                withCredentials([usernamePassword(credentialsId: REGISTRY_CREDENTIALS, usernameVariable: 'USER', passwordVariable: 'PASS')]) {
+                    bat 'docker login -u %USER% -p %PASS%'
+                    bat "docker push %IMAGE_NAME%:%BUILD_NUMBER%"
+                    bat "docker tag %IMAGE_NAME%:%BUILD_NUMBER% %IMAGE_NAME%:latest"
+                    bat "docker push %IMAGE_NAME%:latest"
                 }
             }
         }
     }
-    post {
-        always {
-            echo 'Selesai build 🏁OYYY'
-        }
+    post { 
+        always { 
+            echo 'Selesai build' 
+        } 
     }
 }
